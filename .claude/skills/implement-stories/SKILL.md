@@ -67,11 +67,17 @@ Each story gets its own feature branch and PR. A PR may implement a full story o
 
 #### Per-Story Workflow
 1. Create branch: `git checkout -b feat/E{n}-S{nn}-{slug}`
-2. Implement the story (TDD where specified: failing test → implementation → pass)
-3. Commit with conventional format (see Commit Rules below)
-4. Push: `git push -u origin feat/E{n}-S{nn}-{slug}`
-5. Open PR: `gh pr create` (see PR Rules below)
-6. Mark story as `[~]` (awaiting review) in the STORIES file on `main`
+2. Mark story as `[~]` in the STORIES file on the feature branch and commit immediately
+3. Implement the story (TDD where specified: failing test → implementation → pass)
+4. Commit with conventional format (see Commit Rules below)
+5. Push: `git push -u origin feat/E{n}-S{nn}-{slug}`
+6. Open PR: `gh pr create` (see PR Rules below)
+
+**Status lifecycle — do not skip steps:**
+- `[ ]` → `[~]` when implementation starts (committed on the feature branch)
+- `[~]` stays until the PR is **merged into main** — never mark `[x]` before merge
+- `[~]` → `[x]` only after confirming the PR is merged: `gh pr view {number} --json mergedAt -q .mergedAt`
+- After merge, checkout main, pull, update the STORIES file to `[x]`, and commit directly to main
 
 #### Parallel Stories (no mutual file dependencies)
 1. Create a worktree per story: `git worktree add .claude/worktrees/S{nn} -b feat/E{n}-S{nn}-{slug}`
@@ -115,7 +121,7 @@ After opening the PR, run `/review-pr {number}` to trigger the code review.
 ## Step 6: Verification
 - Run `npm run build` (frontend) and/or `go build ./...` (backend) — must succeed
 - Run tests: `npm test` or `go test ./...`
-- Confirm every completed story has `[x]` status; report remaining `[ ]` or `[!]` stories
+- Confirm every merged story has `[x]` status and every open PR story has `[~]`; report remaining `[ ]` or `[!]` stories
 
 ## Step 7: Roadmap & GitHub Sync
 If all stories in an epic are complete:
@@ -137,7 +143,7 @@ Epic: #<epic-issue-number>
 - Never commit generated files, build artifacts, or `.env` files
 
 ## Handling the Usage Limit
-1. Update STORIES file: completed → `[x]`, current → `[~]`
+1. Update STORIES file: stories with merged PRs → `[x]`, stories with open PRs or in progress → `[~]`
 2. Commit all completed work and push
 3. Resume with `/implement-stories` — STORIES file state allows seamless continuation
 

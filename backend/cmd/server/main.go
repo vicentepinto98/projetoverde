@@ -18,6 +18,7 @@ func main() {
 	r.Use(middleware.Recoverer)
 
 	r.Get("/api/health", handlers.Health)
+	r.Post("/api/contact", handlers.Contact(cfg))
 
 	log.Printf("server listening on :%s", cfg.Port)
 	if err := http.ListenAndServe(":"+cfg.Port, r); err != nil {
