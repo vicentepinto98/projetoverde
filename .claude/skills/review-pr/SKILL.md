@@ -55,6 +55,17 @@ All feedback goes directly onto the PR as a GitHub review — never just print i
 
 Every review body and every inline comment must start with the prefix `🤖 **Claude review:**` so it is clearly attributed as AI-generated, since the comment will appear under the repository owner's GitHub account.
 
+### Determine review event
+GitHub does not allow `REQUEST_CHANGES` on a PR where the reviewer is also the PR author. Before posting, check:
+
+```bash
+PR_AUTHOR=$(gh pr view <number> -R vicentepinto98/projetoverde --json author -q .author.login)
+REVIEWER=$(gh api user -q .login)
+```
+
+- If `PR_AUTHOR == REVIEWER`: use `event="COMMENT"` for all reviews (approve and request-changes alike)
+- Otherwise: use `event="APPROVE"` or `event="REQUEST_CHANGES"` as appropriate
+
 ### File-level inline comments
 For each issue tied to a specific file and line, post an inline comment using the GitHub review API:
 
@@ -65,7 +76,7 @@ gh api repos/vicentepinto98/projetoverde/pulls/<number>/reviews \
   --field body="🤖 **Claude review:**
 
 ## Review" \
-  --field event="REQUEST_CHANGES" \
+  --field event="<COMMENT|REQUEST_CHANGES>" \
   --field "comments[][path]"="<file>" \
   --field "comments[][position]"=<diff-position> \
   --field "comments[][body]"="🤖 **Claude review:** **[blocking]** <description>"
