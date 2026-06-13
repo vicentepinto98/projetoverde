@@ -1,0 +1,15 @@
+# Frontend
+frontend/node_modules/
+frontend/dist/
+
+# Backend
+backend/tmp/
+backend/*.env
+
+# Go
+*.exe
+*.test
+*.out
+
+# Misc
+.DS_Store
