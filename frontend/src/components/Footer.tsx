@@ -3,7 +3,9 @@ export default function Footer() {
     <footer className="bg-deep-brown border-t border-white/10 py-8">
       <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4 text-cream/50 text-sm">
         <div className="flex items-center gap-2">
-          <img src="/logo.jpg" alt="Projeto Verde" className="h-8 w-auto" />
+          <div className="rounded-full bg-cream p-0.5 overflow-hidden shrink-0">
+            <img src="/logo.jpg" alt="Projeto Verde" className="h-7 w-7 object-cover rounded-full" />
+          </div>
           <span>© {new Date().getFullYear()} Projeto Verde · Barreiro, Portugal</span>
         </div>
         <div className="flex items-center gap-6">
