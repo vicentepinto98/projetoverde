@@ -116,9 +116,13 @@ EOF
 )"
 ```
 
-## Step 5: Auto-Merge (only when invoked by implement-stories)
+## Step 5: Auto-trigger next skill
 
-If approved AND all CI checks pass AND this review was triggered automatically by implement-stories (not a manual user request):
+### If changes were requested
+Immediately invoke the `fix-pr-comments` skill on the same PR number — do not wait for a human. The fix-pr-comments skill will address the blocking issues, push, and then re-invoke `review-pr` automatically, continuing the cycle.
+
+### If approved
+Auto-merge only when this review was triggered automatically by `implement-stories` (not a manual user request):
 ```bash
 gh pr merge <number> --rebase --delete-branch
 ```
@@ -135,15 +139,18 @@ Summarize in one short paragraph:
 
 ## Review Cycle
 
-After posting a "Request Changes" review, the original author (or `implement-stories`) must address the comments and push fixes. When they do, re-run `/review-pr {number}` to re-review.
+The cycle runs automatically:
+1. `review-pr` posts feedback → immediately invokes `fix-pr-comments`
+2. `fix-pr-comments` pushes fixes → immediately invokes `review-pr`
+3. Repeat until approved or round limit reached
 
 **Round tracking:** Check the PR's review history to determine the current round:
 ```bash
-gh pr reviews <number> --json state,submittedAt | jq 'length'
+gh pr reviews <number> -R vicentepinto98/projetoverde --json state,submittedAt | jq 'length'
 ```
 
-- **Round 1–3**: reviewer posts feedback → author fixes → reviewer re-reviews
-- **Round 4+**: do NOT re-review. Post this comment and stop:
+- **Round 1–3**: `review-pr` posts → `fix-pr-comments` fixes → `review-pr` re-reviews (automatic)
+- **Round 4+**: do NOT invoke `fix-pr-comments`. Post this comment and stop — human intervention required:
 
 ```bash
 gh pr comment <number> --body "$(cat <<'EOF'
