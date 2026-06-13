@@ -75,9 +75,19 @@ Each story gets its own feature branch and PR. A PR may implement a full story o
 
 **Status lifecycle — do not skip steps:**
 - `[ ]` → `[~]` when implementation starts (committed on the feature branch)
-- `[~]` stays until the PR is **merged into main** — never mark `[x]` before merge
-- `[~]` → `[x]` only after confirming the PR is merged: `gh pr view {number} --json mergedAt -q .mergedAt`
-- After merge, checkout main, pull, update the STORIES file to `[x]`, and commit directly to main
+- `[~]` stays through PR creation, review, and any fix rounds — never mark `[x]` before merge
+- `[~]` → `[x]` only after confirming the PR is merged into main:
+  ```bash
+  gh pr view {number} -R vicentepinto98/projetoverde --json state,mergedAt -q '{state,mergedAt}'
+  ```
+  If `state` is `MERGED`, checkout main, pull, set status to `[x]` in the STORIES file, and commit:
+  ```bash
+  git checkout main && git pull
+  # update STORIES file: [~] → [x]
+  git add docs/epics/E{n}-STORIES.md
+  git commit -m "chore(docs): mark S-{nn} done after PR #{number} merged"
+  git push
+  ```
 
 #### Parallel Stories (no mutual file dependencies)
 1. Create a worktree per story: `git worktree add .claude/worktrees/S{nn} -b feat/E{n}-S{nn}-{slug}`
@@ -116,7 +126,7 @@ EOF
 )"
 ```
 
-After opening the PR, run `/review-pr {number}` to trigger the code review.
+After opening the PR, immediately invoke the `review-pr` skill on the new PR number — do not wait for a human to trigger it. The review posts comments directly on the GitHub PR.
 
 ## Step 6: Verification
 - Run `npm run build` (frontend) and/or `go build ./...` (backend) — must succeed
