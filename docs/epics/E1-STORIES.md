@@ -63,14 +63,14 @@ Three files to create/modify:
    ```
 
 ### Acceptance Criteria
-- [ ] `POST /api/contact` with valid fields returns `200 {"ok": true}` and an email is sent to `CONTACT_TO`
-- [ ] `POST /api/contact` with empty `name` returns `422 {"errors": {"name": "required"}}`
-- [ ] `POST /api/contact` with invalid `email` returns `422 {"errors": {"email": "invalid format"}}`
-- [ ] `POST /api/contact` with empty `message` returns `422 {"errors": {"message": "required"}}`
-- [ ] Multiple invalid fields return all errors in a single `422` response
-- [ ] SMTP credentials are read from env vars only — no hardcoded values
-- [ ] `go test ./...` passes with unit tests for `Validate()` and an `httptest`-based integration test for the handler
-- [ ] `Content-Type: application/json` set on all responses
+- [ ] When the user submits the form with all fields filled in correctly, the API returns a 200 response with the body `{"ok": true}` and an email is delivered to the address specified in `CONTACT_TO`.
+- [ ] When the user submits the form with an empty name field, the API returns a 422 response with the body `{"errors": {"name": "required"}}` and no email is sent.
+- [ ] When the user submits the form with an email address that does not match a valid email format, the API returns a 422 response with the body `{"errors": {"email": "invalid format"}}` and no email is sent.
+- [ ] When the user submits the form with an empty message field, the API returns a 422 response with the body `{"errors": {"message": "required"}}` and no email is sent.
+- [ ] When the user submits the form with multiple invalid fields at once, the API returns a single 422 response containing all validation errors in the `errors` object.
+- [ ] All SMTP credentials are read exclusively from environment variables; no credentials appear in any committed file.
+- [ ] Running `go test ./...` passes, covering unit tests for `Validate()` and an `httptest`-based integration test for the handler.
+- [ ] The API sets `Content-Type: application/json` on all responses.
 
 ### Test Cases Covered
 TC-01 (happy path), TC-02 (validation), TC-03 (SMTP failure)
@@ -82,10 +82,10 @@ TC-01 (happy path), TC-02 (validation), TC-03 (SMTP failure)
 **Epic:** E1 (#1)
 **Priority:** MUST
 **Effort:** 4h
-**Depends on:** S-01
+**Depends on:** S-01 (#5)
 
 ### Details
-Replace the placeholder submit handler in `Contact.tsx` with a real `fetch` call to `POST /api/contact`. The form should show field-level validation errors returned by the API and an error banner with a retry option if the server fails.
+Replace the placeholder submit handler in `Contact.tsx` with a real `fetch` call to `POST /api/contact`. The form should show field-level validation errors returned by the API and an error banner with a retry option if the server fails. S-01 (#5) must be merged before this story can be executed.
 
 ### Implementation Details
 Modify **`frontend/src/components/Contact.tsx`**:
@@ -119,12 +119,12 @@ Modify **`frontend/src/components/Contact.tsx`**:
 No new files needed.
 
 ### Acceptance Criteria
-- [ ] Submitting a valid form calls `POST /api/contact` and shows the existing success state on 200
-- [ ] On 422, field-level error messages appear below the relevant inputs (in Portuguese where possible: "Obrigatório", "Email inválido")
-- [ ] Submit button shows "A enviar…" and is disabled during the request
-- [ ] On 500/network error, an error banner appears with a "Tentar novamente" button that re-enables the form
-- [ ] `errors` state is cleared on each new submission attempt
-- [ ] No inline styles — Tailwind classes only
+- [ ] When the user fills in all fields correctly and submits the form, the browser calls `POST /api/contact` and, on a 200 response, the form transitions to the existing success state.
+- [ ] When the API returns a 422 response with validation errors, the relevant error messages appear below each invalid input field in Portuguese (e.g. "Obrigatório", "Email inválido").
+- [ ] While a submission is in progress, the submit button displays "A enviar…" and is disabled so the user cannot submit twice.
+- [ ] When the API returns a 500 response or a network error occurs, an error banner appears above the submit button with a "Tentar novamente" button that re-enables the form for a new attempt.
+- [ ] The `errors` state is cleared at the start of each new submission attempt so stale error messages do not persist.
+- [ ] No inline styles are used; all styling is done with Tailwind utility classes.
 
 ### Test Cases Covered
-TC-01 (happy path), TC-02 (validation errors shown), TC-03 (retry banner)
+TC-01 (happy path), TC-02 (validation errors shown in UI), TC-03 (retry banner on server error)
