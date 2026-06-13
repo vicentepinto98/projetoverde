@@ -158,7 +158,7 @@ gh api graphql -f query='
   ```bash
   gh pr merge <number> -R vicentepinto98/projetoverde --squash --delete-branch
   ```
-  Squash is used because a repository ruleset blocks rebase merges; it also keeps one conventional commit per story on `main`. Then checkout main, pull, mark the story `[x]` in the STORIES file, and commit.
+  Squash is used because a repository ruleset blocks rebase merges; it also keeps one conventional commit per story on `main`. The squash-merge auto-closes the story issue via the PR's `Closes #` — **do not** flip `[x]` on `main` or push to it (the ruleset blocks direct pushes; a closed issue plus board `Done` are the source of truth). When invoked by `implement-stories`, that skill sets the board to **Done** after the merge.
 
 - **Result > 0** (open threads remain) → do NOT merge. Report to the user:
   > "PR #<number> is approved but has N unresolved conversation(s). Resolve them before merging."

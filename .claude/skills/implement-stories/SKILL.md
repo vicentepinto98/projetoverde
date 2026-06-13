@@ -19,6 +19,7 @@ The project-root `STORIES.md` is an index only — do not read stories from it.
 ## Input
 - Determine the epic from $ARGUMENTS (e.g. "E2") or ask if not specified
 - Read the STORIES file to identify all stories with status `[ ]` (planned) or `[~]` (in progress)
+- **A story whose GitHub issue is closed is already done — skip it.** The STORIES file is never flipped to `[x]` on `main` (a closed issue + board `Done` are the source of truth), so a `[~]` story with a still-open issue is genuinely in progress
 - If $ARGUMENTS specifies a story ID (e.g. "S-03"), focus on that story only
 - If a story is `[!]` blocked, skip it and note the blocker
 
@@ -76,25 +77,18 @@ Each story gets its own feature branch and PR. A PR may implement a full story o
 5. Push: `git push -u origin feat/E{n}-S{nn}-{slug}`
 6. Open PR: `gh pr create` (see PR Rules below)
 
-**Status lifecycle — do not skip steps:**
-- `[ ]` → `[~]` when implementation starts (committed on the feature branch)
-- `[~]` stays through PR creation, review, and any fix rounds — never mark `[x]` before merge
-- `[~]` → `[x]` only after confirming the PR is merged into main:
-  ```bash
-  gh pr view {number} -R vicentepinto98/projetoverde --json state,mergedAt -q '{state,mergedAt}'
-  ```
-  If `state` is `MERGED`, first move the board status to **Done**:
-  ```bash
-  .claude/scripts/set-board-status.sh {story-issue-number} done
-  ```
-  Then checkout main, pull, set status to `[x]` in the STORIES file, and commit:
-  ```bash
-  git checkout main && git pull
-  # update STORIES file: [~] → [x]
-  git add docs/epics/E{n}-STORIES.md
-  git commit -m "chore(docs): mark S-{nn} done after PR #{number} merged"
-  git push
-  ```
+**Status lifecycle:**
+- `[ ]` → `[~]` when implementation starts. This is committed **on the feature branch**, so the `[~]` reaches `main` inside the story's own PR.
+- `[~]` stays through PR creation, review, and any fix rounds.
+- **Completion is not marked by flipping `[x]` on `main`.** The ruleset makes `main` PR-only and the feature branch is deleted at merge, so there is nothing left to push to. Two things at merge record "done", and together they are the source of truth:
+  1. The PR body's `Closes #{story-issue-number}` auto-closes the story issue when the squash-merge lands.
+  2. After confirming the merge, set the board to **Done**:
+     ```bash
+     gh pr view {number} -R vicentepinto98/projetoverde --json state,mergedAt -q '{state,mergedAt}'
+     # if state == MERGED:
+     .claude/scripts/set-board-status.sh {story-issue-number} done
+     ```
+  Leave the STORIES file showing `[~]` on `main` — do **not** open a separate PR just to flip `[x]`.
 
 > Board status (`set-board-status.sh`) runs as your `gh` user — never the App token. The script reads the project/field/option IDs from CLAUDE.md's GitHub Project Integration table.
 
@@ -140,7 +134,7 @@ After opening the PR, immediately invoke the `review-pr` skill on the new PR num
 ## Step 6: Verification
 - Run `npm run build` (frontend) and/or `go build ./...` (backend) — must succeed
 - Run tests: `npm test` or `go test ./...`
-- Confirm every merged story has `[x]` status and every open PR story has `[~]`; report remaining `[ ]` or `[!]` stories
+- Confirm every merged story's issue is **closed** and its board status is **Done**; report any stories still `[ ]` (not started) or `[!]` (blocked)
 
 ## Step 7: Roadmap & GitHub Sync
 If all stories in an epic are complete:
@@ -162,13 +156,13 @@ Epic: #<epic-issue-number>
 - Never commit generated files, build artifacts, or `.env` files
 
 ## Handling the Usage Limit
-1. Update STORIES file: stories with merged PRs → `[x]`, stories with open PRs or in progress → `[~]`
-2. Commit all completed work and push
-3. Resume with `/implement-stories` — STORIES file state allows seamless continuation
+1. Ensure each in-flight story is `[~]` on its feature branch (merged stories are already recorded by their closed issue + board `Done`)
+2. Commit all in-progress work and push the feature branch
+3. Resume with `/implement-stories` — open issues + `[~]` markers allow seamless continuation
 
 ## Rules
 - Never skip acceptance criteria — if unverifiable, note why
 - Never create a PR without a story reference
 - Never create a story outside of an epic
 - Never silently change scope; ask first
-- If `gh` commands fail, log warning and continue — STORIES file is source of truth
+- The **closed GitHub issue + board `Done`** are the source of truth for "done" — not a `[x]` in the STORIES file (which stays `[~]` on `main`)
