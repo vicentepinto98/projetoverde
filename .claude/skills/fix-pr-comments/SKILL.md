@@ -87,14 +87,54 @@ Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 git push origin "$BRANCH"
 ```
 
-## Step 7: Auto-invoke review-pr
+## Step 7: Resolve fixed conversations
+
+After pushing, resolve every conversation thread whose comment was addressed. GitHub requires GraphQL for this.
+
+First, fetch all unresolved threads with their IDs and first-comment bodies:
+
+```bash
+gh api graphql -f query='
+{
+  repository(owner: "vicentepinto98", name: "projetoverde") {
+    pullRequest(number: <number>) {
+      reviewThreads(first: 100) {
+        nodes {
+          id
+          isResolved
+          comments(first: 1) {
+            nodes { body }
+          }
+        }
+      }
+    }
+  }
+}'
+```
+
+For each thread where `isResolved` is `false` and the comment body matches one that was fixed (or applied), resolve it:
+
+```bash
+gh api graphql -f query='
+mutation {
+  resolveReviewThread(input: {threadId: "<thread-id>"}) {
+    thread { isResolved }
+  }
+}'
+```
+
+**Which threads to resolve:**
+- Every thread whose comment was fixed (blocking or applied suggestion)
+- Do **not** resolve threads for comments that were skipped or are still open
+
+## Step 8: Auto-invoke review-pr
 
 Immediately invoke the `review-pr` skill on the same PR number. Do not wait for a human to trigger it.
 
-## Step 8: Report to user
+## Step 9: Report to user
 
-After pushing (before the review result is back), briefly note:
-- Which blocking comments were fixed
+After pushing and resolving threads, briefly note:
+- Which blocking comments were fixed and their threads resolved
 - Which suggestions were applied (if any)
 - Which comments were skipped and why (if any)
 
