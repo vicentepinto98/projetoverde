@@ -67,19 +67,23 @@ Frontend:
 **Requirements:**
 
 Functional:
-- REQ-01: Frontend is publicly accessible via HTTPS on a stable URL
-- REQ-02: Backend API is publicly accessible and reachable from the frontend
-- REQ-03: Every merge to `main` triggers an automatic deploy of both frontend and backend
-- REQ-04: Deploy failures notify the team (GitHub Actions status)
+- REQ-01: Every merge to `main` automatically deploys both frontend and backend to a **QA environment**
+- REQ-02: QA environment is publicly accessible via HTTPS and usable by the school owners for testing
+- REQ-03: **Production deploy is a manual action** — a human must explicitly trigger it (e.g. GitHub Actions workflow dispatch or a manual Vercel/Render promotion)
+- REQ-04: Production and QA are fully isolated — QA deploys never affect the production URL
+- REQ-05: Deploy failures notify the team (GitHub Actions status)
+- REQ-06: Both QA and production backend APIs are reachable from their respective frontends
 
 Non-functional:
-- REQ-05: Total hosting cost must be €0 (free tier only)
-- REQ-06: Frontend cold load < 3s on a 4G connection
+- REQ-07: Total hosting cost must be €0 (free tier only)
+- REQ-08: Frontend cold load < 3s on a 4G connection
 
 **Test Cases:**
-- TC-01: Happy path — merge to `main`; GitHub Actions deploys both services; public URL serves the site within 5 minutes
-- TC-02: Build failure — broken code merged; deploy fails; previous version stays live; CI reports failure
-- TC-03: API reachability — frontend can POST to `/api/contact` from the deployed URL without CORS errors
+- TC-01: Auto-deploy to QA — merge to `main`; both services deploy to QA URL automatically; school owners can browse the site within 5 minutes
+- TC-02: Manual prod deploy — human triggers production deploy via GitHub Actions; production URL updated; QA URL unchanged
+- TC-03: Build failure — broken code merged; QA deploy fails; previous QA version stays live; production unaffected; CI reports failure
+- TC-04: Environment isolation — changes visible on QA URL are not visible on production URL until a prod deploy is triggered
+- TC-05: API reachability — frontend can POST to `/api/contact` without CORS errors on both QA and production
 
 **Architecture Decisions:**
 - ADR-02: Frontend on Vercel (free tier, GitHub integration, CDN) — zero config for Vite apps
