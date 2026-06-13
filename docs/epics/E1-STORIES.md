@@ -78,7 +78,7 @@ TC-01 (happy path), TC-02 (validation), TC-03 (SMTP failure)
 
 ---
 
-## S-02: Wire contact form to API [ ] (#6)
+## S-02: Wire contact form to API [~] (#6)
 
 **Epic:** E1 (#1)
 **Priority:** MUST
