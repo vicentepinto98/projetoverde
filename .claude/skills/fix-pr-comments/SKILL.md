@@ -12,10 +12,11 @@ Address all open review comments on pull request $ARGUMENTS, push the fixes, the
 
 ## Step 1: Guard — check round count
 
-Before doing anything, check how many review rounds have already happened:
+Before doing anything, check how many **real** review rounds have happened. GitHub automatically creates empty-body reviews when new commits are pushed (to mark prior reviews as outdated) — exclude those from the count:
 
 ```bash
-gh pr reviews <number> -R vicentepinto98/projetoverde --json state,submittedAt | jq 'length'
+gh api repos/vicentepinto98/projetoverde/pulls/<number>/reviews \
+  --jq '[.[] | select(.body != "")] | length'
 ```
 
 If the count is **3 or more**, do NOT attempt to fix. Tell the user:

@@ -144,9 +144,10 @@ The cycle runs automatically:
 2. `fix-pr-comments` pushes fixes → immediately invokes `review-pr`
 3. Repeat until approved or round limit reached
 
-**Round tracking:** Check the PR's review history to determine the current round:
+**Round tracking:** Count only reviews with non-empty bodies — GitHub creates empty reviews when commits are pushed to a PR (marking prior reviews outdated):
 ```bash
-gh pr reviews <number> -R vicentepinto98/projetoverde --json state,submittedAt | jq 'length'
+gh api repos/vicentepinto98/projetoverde/pulls/<number>/reviews \
+  --jq '[.[] | select(.body != "")] | length'
 ```
 
 - **Round 1–3**: `review-pr` posts → `fix-pr-comments` fixes → `review-pr` re-reviews (automatic)
