@@ -4,23 +4,22 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
 	"github.com/vicentepinto98/projetoverde/internal/config"
 	"github.com/vicentepinto98/projetoverde/internal/handlers"
+	"github.com/vicentepinto98/projetoverde/internal/middleware"
 )
 
 func main() {
 	cfg := config.Load()
 
-	r := chi.NewRouter()
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET /api/health", handlers.Health)
+	mux.HandleFunc("POST /api/contact", handlers.Contact(cfg))
 
-	r.Get("/api/health", handlers.Health)
+	handler := middleware.Logging(middleware.Recovery(mux))
 
 	log.Printf("server listening on :%s", cfg.Port)
-	if err := http.ListenAndServe(":"+cfg.Port, r); err != nil {
+	if err := http.ListenAndServe(":"+cfg.Port, handler); err != nil {
 		log.Fatal(err)
 	}
 }

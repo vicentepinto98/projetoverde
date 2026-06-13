@@ -5,7 +5,7 @@ Goal: Wire the existing contact form to send real emails so parents can reach th
 
 ---
 
-## S-01: Contact API handler [ ] (#5)
+## S-01: Contact API handler [~] (#5)
 
 **Epic:** E1 (#1)
 **Priority:** MUST

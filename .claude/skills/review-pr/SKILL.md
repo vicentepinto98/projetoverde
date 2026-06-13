@@ -53,6 +53,19 @@ If CI is still running, wait up to 60 seconds then check again. If CI fails, rep
 
 All feedback goes directly onto the PR as a GitHub review — never just print it to the terminal.
 
+Every review body and every inline comment must start with the prefix `🤖 **Claude review:**` so it is clearly attributed as AI-generated, since the comment will appear under the repository owner's GitHub account.
+
+### Determine review event
+GitHub does not allow `REQUEST_CHANGES` on a PR where the reviewer is also the PR author. Before posting, check:
+
+```bash
+PR_AUTHOR=$(gh pr view <number> -R vicentepinto98/projetoverde --json author -q .author.login)
+REVIEWER=$(gh api user -q .login)
+```
+
+- If `PR_AUTHOR == REVIEWER`: use `event="COMMENT"` for all reviews (approve and request-changes alike)
+- Otherwise: use `event="APPROVE"` or `event="REQUEST_CHANGES"` as appropriate
+
 ### File-level inline comments
 For each issue tied to a specific file and line, post an inline comment using the GitHub review API:
 
@@ -60,11 +73,13 @@ For each issue tied to a specific file and line, post an inline comment using th
 gh api repos/vicentepinto98/projetoverde/pulls/<number>/reviews \
   --method POST \
   --field commit_id="$(gh pr view <number> --json headRefOid -q .headRefOid)" \
-  --field body="## Review" \
-  --field event="REQUEST_CHANGES" \
+  --field body="🤖 **Claude review:**
+
+## Review" \
+  --field event="<COMMENT|REQUEST_CHANGES>" \
   --field "comments[][path]"="<file>" \
   --field "comments[][position]"=<diff-position> \
-  --field "comments[][body]"="**[blocking]** <description>"
+  --field "comments[][body]"="🤖 **Claude review:** **[blocking]** <description>"
 ```
 
 For multiple inline comments, include multiple `comments[]` entries in one API call.
@@ -74,7 +89,7 @@ To find the correct `position` (1-indexed line within the unified diff hunk), co
 ### Approve (no blocking issues)
 ```bash
 gh pr review <number> --approve --body "$(cat <<'EOF'
-## Review: Approved ✓
+🤖 **Claude review:** Approved ✓
 
 All checks passed. Acceptance criteria met, project rules followed.
 
@@ -87,7 +102,7 @@ EOF
 ### Request Changes (blocking issues found)
 ```bash
 gh pr review <number> --request-changes --body "$(cat <<'EOF'
-## Review: Changes Requested
+🤖 **Claude review:** Changes Requested
 
 ### Blocking Issues
 - **<file:line>** — <description and why it matters>
@@ -101,9 +116,13 @@ EOF
 )"
 ```
 
-## Step 5: Auto-Merge (only when invoked by implement-stories)
+## Step 5: Auto-trigger next skill
 
-If approved AND all CI checks pass AND this review was triggered automatically by implement-stories (not a manual user request):
+### If changes were requested
+Immediately invoke the `fix-pr-comments` skill on the same PR number — do not wait for a human. The fix-pr-comments skill will address the blocking issues, push, and then re-invoke `review-pr` automatically, continuing the cycle.
+
+### If approved
+Auto-merge only when this review was triggered automatically by `implement-stories` (not a manual user request):
 ```bash
 gh pr merge <number> --rebase --delete-branch
 ```
@@ -120,19 +139,23 @@ Summarize in one short paragraph:
 
 ## Review Cycle
 
-After posting a "Request Changes" review, the original author (or `implement-stories`) must address the comments and push fixes. When they do, re-run `/review-pr {number}` to re-review.
+The cycle runs automatically:
+1. `review-pr` posts feedback → immediately invokes `fix-pr-comments`
+2. `fix-pr-comments` pushes fixes → immediately invokes `review-pr`
+3. Repeat until approved or round limit reached
 
-**Round tracking:** Check the PR's review history to determine the current round:
+**Round tracking:** Count only reviews with non-empty bodies — GitHub creates empty reviews when commits are pushed to a PR (marking prior reviews outdated):
 ```bash
-gh pr reviews <number> --json state,submittedAt | jq 'length'
+gh api repos/vicentepinto98/projetoverde/pulls/<number>/reviews \
+  --jq '[.[] | select(.body != "")] | length'
 ```
 
-- **Round 1–3**: reviewer posts feedback → author fixes → reviewer re-reviews
-- **Round 4+**: do NOT re-review. Post this comment and stop:
+- **Round 1–3**: `review-pr` posts → `fix-pr-comments` fixes → `review-pr` re-reviews (automatic)
+- **Round 4+**: do NOT invoke `fix-pr-comments`. Post this comment and stop — human intervention required:
 
 ```bash
 gh pr comment <number> --body "$(cat <<'EOF'
-## Human Intervention Required
+🤖 **Claude review:** Human Intervention Required
 
 This PR has gone through 3 review rounds without reaching approval. The outstanding issues need human judgement to resolve.
 
