@@ -41,12 +41,15 @@ projetoverde/
 
 ## Development Workflow
 
-1. **Plan** — Claude writes epics and features as GitHub Issues
-2. **Branch** — feature branches off `main`, named `feat/<slug>`
-3. **Implement** — Claude codes the feature
-4. **Review** — `/code-review` skill runs before any PR
-5. **Test** — unit + integration tests required for all backend handlers
-6. **PR** — Claude opens a PR; human approves and merges
+1. **Define** — `/define-epic` writes epic with goal, requirements, test cases, ADRs, and API/UX design
+2. **Plan** — `/plan-epic` breaks the epic into stories with priority, effort, and acceptance criteria
+3. **Implement** — `/execute-stories` implements each story on a feature branch (`feat/E{n}-S{nn}-{slug}`)
+4. **PR** — one PR per story (or per self-contained part of a story), opened via `gh pr create`
+5. **Review** — `/review-pr <number>` posts inline comments directly on the GitHub PR
+6. **Iterate** — author addresses comments and pushes fixes; reviewer re-reviews (max 3 rounds, then human steps in)
+7. **Merge** — human approves and merges once review passes
+
+A PR must always reference a story. A story must always belong to an epic.
 
 ## Key Conventions
 
@@ -65,6 +68,23 @@ cd backend && go run ./cmd/server
 # Frontend
 cd frontend && npm install && npm run dev
 ```
+
+## GitHub Project Integration
+
+| Variable | Value |
+|---|---|
+| Repository: | `vicentepinto98/projetoverde` |
+| Project URL: | https://github.com/users/vicentepinto98/projects/1 |
+| Project ID: | `PVT_kwHOA17tsM4BakYF` |
+| Status field ID: | `PVTSSF_lAHOA17tsM4BakYFzhVbDeg` |
+
+Status options:
+
+| Status | Option ID |
+|---|---|
+| `STATUS_BACKLOG` | `f75ad846` (Todo) |
+| `STATUS_IN_PROGRESS` | `47fc9ee4` (In Progress) |
+| `STATUS_DONE` | `98236657` (Done) |
 
 ## Environment Variables
 
