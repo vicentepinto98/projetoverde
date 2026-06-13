@@ -30,6 +30,7 @@ Three files to create/modify:
    }
    ```
    Read from env vars `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `CONTACT_TO`. Defaults: host=`smtp.gmail.com`, port=`587`. `SMTP_USER`, `SMTP_PASS`, `CONTACT_TO` have no defaults — handler must check they are set.
+   Per-environment values for `CONTACT_TO`: QA → `vicenteppinto@gmail.com`; production → `escolaprojetoverde@gmail.com`.
 
 2. **`backend/internal/models/contact.go`** — request struct and validation:
    ```go
@@ -52,7 +53,7 @@ Three files to create/modify:
    }
    ```
    Flow: decode body → validate → send SMTP → respond.
-   - 422 on validation errors: `{"errors": {"field": "reason"}}`
+   - 400 on validation errors: `{"errors": {"field": "reason"}}`
    - 200 on success: `{"ok": true}`
    - 500 on SMTP failure: `{"error": "failed to send message"}`
    - Use `net/smtp` with STARTTLS (`smtp.SendMail`)
@@ -64,10 +65,10 @@ Three files to create/modify:
 
 ### Acceptance Criteria
 - [ ] When the user submits the form with all fields filled in correctly, the API returns a 200 response with the body `{"ok": true}` and an email is delivered to the address specified in `CONTACT_TO`.
-- [ ] When the user submits the form with an empty name field, the API returns a 422 response with the body `{"errors": {"name": "required"}}` and no email is sent.
-- [ ] When the user submits the form with an email address that does not match a valid email format, the API returns a 422 response with the body `{"errors": {"email": "invalid format"}}` and no email is sent.
-- [ ] When the user submits the form with an empty message field, the API returns a 422 response with the body `{"errors": {"message": "required"}}` and no email is sent.
-- [ ] When the user submits the form with multiple invalid fields at once, the API returns a single 422 response containing all validation errors in the `errors` object.
+- [ ] When the user submits the form with an empty name field, the API returns a 400 response with the body `{"errors": {"name": "required"}}` and no email is sent.
+- [ ] When the user submits the form with an email address that does not match a valid email format, the API returns a 400 response with the body `{"errors": {"email": "invalid format"}}` and no email is sent.
+- [ ] When the user submits the form with an empty message field, the API returns a 400 response with the body `{"errors": {"message": "required"}}` and no email is sent.
+- [ ] When the user submits the form with multiple invalid fields at once, the API returns a single 400 response containing all validation errors in the `errors` object.
 - [ ] All SMTP credentials are read exclusively from environment variables; no credentials appear in any committed file.
 - [ ] Running `go test ./...` passes, covering unit tests for `Validate()` and an `httptest`-based integration test for the handler.
 - [ ] The API sets `Content-Type: application/json` on all responses.
@@ -101,7 +102,7 @@ Modify **`frontend/src/components/Contact.tsx`**:
     body: JSON.stringify(form),
   })
   if (res.ok) { setSent(true); return }
-  if (res.status === 422) {
+  if (res.status === 400) {
     const { errors } = await res.json()
     setErrors(errors)
     return
@@ -120,7 +121,7 @@ No new files needed.
 
 ### Acceptance Criteria
 - [ ] When the user fills in all fields correctly and submits the form, the browser calls `POST /api/contact` and, on a 200 response, the form transitions to the existing success state.
-- [ ] When the API returns a 422 response with validation errors, the relevant error messages appear below each invalid input field in Portuguese (e.g. "Obrigatório", "Email inválido").
+- [ ] When the API returns a 400 response with validation errors, the relevant error messages appear below each invalid input field in Portuguese (e.g. "Obrigatório", "Email inválido").
 - [ ] While a submission is in progress, the submit button displays "A enviar…" and is disabled so the user cannot submit twice.
 - [ ] When the API returns a 500 response or a network error occurs, an error banner appears above the submit button with a "Tentar novamente" button that re-enables the form for a new attempt.
 - [ ] The `errors` state is cleared at the start of each new submission attempt so stale error messages do not persist.
