@@ -39,7 +39,7 @@ export default function Gallery() {
 
         <div className="text-center mt-12">
           <a
-            href="https://www.instagram.com/projetooverde/"
+            href="https://www.instagram.com/projetoverdee/"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-3 border-2 border-sage-green text-cream px-8 py-3 rounded-full font-bold text-sm tracking-wide hover:bg-sage-green hover:text-forest-green transition-colors"
