@@ -53,6 +53,8 @@ If CI is still running, wait up to 60 seconds then check again. If CI fails, rep
 
 All feedback goes directly onto the PR as a GitHub review — never just print it to the terminal.
 
+Every review body and every inline comment must start with the prefix `🤖 **Claude review:**` so it is clearly attributed as AI-generated, since the comment will appear under the repository owner's GitHub account.
+
 ### File-level inline comments
 For each issue tied to a specific file and line, post an inline comment using the GitHub review API:
 
@@ -60,11 +62,13 @@ For each issue tied to a specific file and line, post an inline comment using th
 gh api repos/vicentepinto98/projetoverde/pulls/<number>/reviews \
   --method POST \
   --field commit_id="$(gh pr view <number> --json headRefOid -q .headRefOid)" \
-  --field body="## Review" \
+  --field body="🤖 **Claude review:**
+
+## Review" \
   --field event="REQUEST_CHANGES" \
   --field "comments[][path]"="<file>" \
   --field "comments[][position]"=<diff-position> \
-  --field "comments[][body]"="**[blocking]** <description>"
+  --field "comments[][body]"="🤖 **Claude review:** **[blocking]** <description>"
 ```
 
 For multiple inline comments, include multiple `comments[]` entries in one API call.
@@ -74,7 +78,7 @@ To find the correct `position` (1-indexed line within the unified diff hunk), co
 ### Approve (no blocking issues)
 ```bash
 gh pr review <number> --approve --body "$(cat <<'EOF'
-## Review: Approved ✓
+🤖 **Claude review:** Approved ✓
 
 All checks passed. Acceptance criteria met, project rules followed.
 
@@ -87,7 +91,7 @@ EOF
 ### Request Changes (blocking issues found)
 ```bash
 gh pr review <number> --request-changes --body "$(cat <<'EOF'
-## Review: Changes Requested
+🤖 **Claude review:** Changes Requested
 
 ### Blocking Issues
 - **<file:line>** — <description and why it matters>
@@ -132,7 +136,7 @@ gh pr reviews <number> --json state,submittedAt | jq 'length'
 
 ```bash
 gh pr comment <number> --body "$(cat <<'EOF'
-## Human Intervention Required
+🤖 **Claude review:** Human Intervention Required
 
 This PR has gone through 3 review rounds without reaching approval. The outstanding issues need human judgement to resolve.
 
