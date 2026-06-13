@@ -67,7 +67,10 @@ Each story gets its own feature branch and PR. A PR may implement a full story o
 
 #### Per-Story Workflow
 1. Create branch: `git checkout -b feat/E{n}-S{nn}-{slug}`
-2. Mark story as `[~]` in the STORIES file on the feature branch and commit immediately
+2. Mark story as `[~]` in the STORIES file on the feature branch and commit immediately, then move the board status to **In Progress**:
+   ```bash
+   .claude/scripts/set-board-status.sh {story-issue-number} in-progress
+   ```
 3. Implement the story (TDD where specified: failing test → implementation → pass)
 4. Commit with conventional format (see Commit Rules below)
 5. Push: `git push -u origin feat/E{n}-S{nn}-{slug}`
@@ -80,7 +83,11 @@ Each story gets its own feature branch and PR. A PR may implement a full story o
   ```bash
   gh pr view {number} -R vicentepinto98/projetoverde --json state,mergedAt -q '{state,mergedAt}'
   ```
-  If `state` is `MERGED`, checkout main, pull, set status to `[x]` in the STORIES file, and commit:
+  If `state` is `MERGED`, first move the board status to **Done**:
+  ```bash
+  .claude/scripts/set-board-status.sh {story-issue-number} done
+  ```
+  Then checkout main, pull, set status to `[x]` in the STORIES file, and commit:
   ```bash
   git checkout main && git pull
   # update STORIES file: [~] → [x]
@@ -88,6 +95,8 @@ Each story gets its own feature branch and PR. A PR may implement a full story o
   git commit -m "chore(docs): mark S-{nn} done after PR #{number} merged"
   git push
   ```
+
+> Board status (`set-board-status.sh`) runs as your `gh` user — never the App token. The script reads the project/field/option IDs from CLAUDE.md's GitHub Project Integration table.
 
 #### Parallel Stories (no mutual file dependencies)
 1. Create a worktree per story: `git worktree add .claude/worktrees/S{nn} -b feat/E{n}-S{nn}-{slug}`
