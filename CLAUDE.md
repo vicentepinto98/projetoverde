@@ -43,7 +43,7 @@ projetoverde/
 
 1. **Define** — `/define-epic` writes epic with goal, requirements, test cases, ADRs, and API/UX design
 2. **Plan** — `/plan-epic` breaks the epic into stories with priority, effort, and acceptance criteria
-3. **Implement** — `/execute-stories` implements each story on a feature branch (`feat/E{n}-S{nn}-{slug}`)
+3. **Implement** — `/implement-stories` implements each story on a feature branch (`feat/E{n}-S{nn}-{slug}`)
 4. **PR** — one PR per story (or per self-contained part of a story), opened via `gh pr create`
 5. **Review** — `/review-pr <number>` posts inline comments directly on the GitHub PR
 6. **Iterate** — author addresses comments and pushes fixes; reviewer re-reviews (max 3 rounds, then human steps in)

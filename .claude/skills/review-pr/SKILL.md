@@ -1,6 +1,6 @@
 ---
 name: review-pr
-description: Review an open pull request against project standards and task acceptance criteria, then post the review as comments directly on the GitHub PR. Use after a PR is created. Triggers like "review PR #42", "review the PR", or automatically after PR creation by execute-tasks.
+description: Review an open pull request against project standards and task acceptance criteria, then post the review as comments directly on the GitHub PR. Use after a PR is created. Triggers like "review PR #42", "review the PR", or automatically after PR creation by implement-stories.
 model: sonnet
 ---
 
@@ -101,9 +101,9 @@ EOF
 )"
 ```
 
-## Step 5: Auto-Merge (only when invoked by execute-tasks)
+## Step 5: Auto-Merge (only when invoked by implement-stories)
 
-If approved AND all CI checks pass AND this review was triggered automatically by execute-tasks (not a manual user request):
+If approved AND all CI checks pass AND this review was triggered automatically by implement-stories (not a manual user request):
 ```bash
 gh pr merge <number> --rebase --delete-branch
 ```
@@ -120,7 +120,7 @@ Summarize in one short paragraph:
 
 ## Review Cycle
 
-After posting a "Request Changes" review, the original author (or `execute-stories`) must address the comments and push fixes. When they do, re-run `/review-pr {number}` to re-review.
+After posting a "Request Changes" review, the original author (or `implement-stories`) must address the comments and push fixes. When they do, re-run `/review-pr {number}` to re-review.
 
 **Round tracking:** Check the PR's review history to determine the current round:
 ```bash
@@ -148,4 +148,4 @@ EOF
 - Be specific: reference exact file paths and line numbers in comments
 - Distinguish blocking issues from suggestions
 - PRs must reference a story — flag any PR without a story reference as non-compliant
-- If execute-stories created the PR and review-pr reviews it, note this in the review body
+- If implement-stories created the PR and review-pr reviews it, note this in the review body

@@ -1,6 +1,6 @@
 ---
-name: execute-stories
-description: Execute planned stories from a STORIES file. Use when the user asks to implement stories, work through an epic, or says things like "execute E2", "implement S-03", or "work through the stories".
+name: implement-stories
+description: Implement planned stories from a STORIES file. Use when the user asks to implement stories, work through an epic, or says things like "implement E2", "implement S-03", or "work through the stories".
 model: sonnet
 ---
 
@@ -139,7 +139,7 @@ Epic: #<epic-issue-number>
 ## Handling the Usage Limit
 1. Update STORIES file: completed → `[x]`, current → `[~]`
 2. Commit all completed work and push
-3. Resume with `/execute-stories` — STORIES file state allows seamless continuation
+3. Resume with `/implement-stories` — STORIES file state allows seamless continuation
 
 ## Rules
 - Never skip acceptance criteria — if unverifiable, note why
