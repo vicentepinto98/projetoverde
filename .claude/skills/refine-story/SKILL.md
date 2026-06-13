@@ -1,6 +1,6 @@
 ---
-name: sync-story
-description: Read comments on a GitHub story issue and update the story description in the STORIES file accordingly. Only applies to stories that have not yet been executed (status [ ]). Use when the user says "sync story S-02", "update story from comments", or "check comments on #6".
+name: refine-story
+description: Read comments on a GitHub story issue and update the story description in the STORIES file accordingly. Only applies to stories that have not yet been executed (status [ ]). Use when the user says "refine story S-02", "update story from comments", or "check comments on #6".
 model: sonnet
 ---
 
