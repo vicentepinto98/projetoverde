@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"net/smtp"
 
@@ -13,6 +14,7 @@ import (
 func Contact(cfg config.Config) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
+		defer r.Body.Close()
 
 		var req models.ContactRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -41,8 +43,12 @@ func sendEmail(cfg config.Config, req models.ContactRequest) error {
 	addr := cfg.SMTPHost + ":" + cfg.SMTPPort
 	auth := smtp.PlainAuth("", cfg.SMTPUser, cfg.SMTPPass, cfg.SMTPHost)
 	body := fmt.Sprintf(
-		"From: %s\r\nTo: %s\r\nSubject: Contacto via Projeto Verde — %s\r\n\r\n%s\r\n\r\n---\r\nEnviado por: %s",
-		cfg.SMTPUser, cfg.ContactTo, req.Name, req.Message, req.Email,
+		"From: %s\r\nTo: %s\r\nSubject: Contacto via site — %s\r\n\r\n%s\r\n\r\n---\r",
+		cfg.SMTPUser, cfg.ContactTo, req.Name, req.Message,
 	)
-	return smtp.SendMail(addr, auth, cfg.SMTPUser, []string{cfg.ContactTo}, []byte(body))
+	if err := smtp.SendMail(addr, auth, cfg.SMTPUser, []string{cfg.ContactTo}, []byte(body)); err != nil {
+		log.Printf("smtp: %v", err)
+		return err
+	}
+	return nil
 }
