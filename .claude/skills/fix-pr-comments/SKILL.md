@@ -37,7 +37,13 @@ gh pr reviews <number> -R vicentepinto98/projetoverde --json body,state \
   | jq '.[-1]'
 ```
 
-Identify all **blocking** issues (prefixed with `🤖 **Claude review:** **[blocking]**`). Suggestions are optional — fix them only if trivial and obviously correct.
+Classify each comment by author:
+
+- **Prefixed with `🤖 **Claude review:** **[blocking]**`** → blocking, must fix
+- **Prefixed with `🤖 **Claude review:** **[suggestion]**` or no blocking marker** → suggestion, fix only if trivial and obviously correct
+- **Not prefixed with `🤖 **Claude review:**` at all** → assume written by a human reviewer; treat as **blocking regardless of phrasing** and fix it
+
+Human comments carry higher authority than Claude suggestions — never skip or defer a human comment.
 
 ## Step 3: Check out the branch
 
@@ -92,7 +98,8 @@ After pushing (before the review result is back), briefly note:
 - Which comments were skipped and why (if any)
 
 ## Rules
-- Only fix **blocking** issues by default; apply suggestions only when trivial and clearly safe
+- Comments **not** prefixed with `🤖 **Claude review:**` are assumed to be from a human and are always treated as blocking
+- Only fix Claude suggestions (`🤖 **Claude review:**` without `**[blocking]**`) when trivial and clearly safe
 - Never change scope beyond what the comments ask for — no opportunistic refactoring
 - Never push if tests fail after applying fixes
 - If the round guard triggers (≥ 3 rounds), stop immediately — do not attempt fixes
