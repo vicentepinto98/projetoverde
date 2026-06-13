@@ -26,21 +26,8 @@ export default function Nav() {
     >
       <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
         {/* Logo */}
-        <a href="#inicio" className="flex items-center gap-3 group">
-          <div className="w-10 h-10 rounded-full bg-forest-green flex items-center justify-center shrink-0">
-            <svg viewBox="0 0 32 32" className="w-6 h-6" fill="none">
-              <path
-                d="M16 28 C16 28 6 21 6 13 C6 8.5 10.5 5 16 5 C21.5 5 26 8.5 26 13 C26 21 16 28 16 28Z"
-                fill="#A8C97F"
-              />
-              <line x1="16" y1="28" x2="16" y2="11" stroke="#F7F3EC" strokeWidth="1.8" strokeLinecap="round" />
-              <path d="M16 20 C14 17 10 17 8 14" stroke="#F7F3EC" strokeWidth="1.4" strokeLinecap="round" fill="none" />
-              <path d="M16 16 C18 13 22 13 24 10" stroke="#F7F3EC" strokeWidth="1.4" strokeLinecap="round" fill="none" />
-            </svg>
-          </div>
-          <span className="font-serif text-xl font-semibold text-forest-green group-hover:text-leaf-green transition-colors">
-            Projeto Verde
-          </span>
+        <a href="#inicio" className="flex items-center gap-2 group">
+          <img src="/logo.jpg" alt="Projeto Verde" className="h-12 w-auto" />
         </a>
 
         {/* Desktop links */}
