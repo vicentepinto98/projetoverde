@@ -10,6 +10,17 @@ Address all open review comments on pull request $ARGUMENTS, push the fixes, the
 - If $ARGUMENTS is a PR number (e.g. "42" or "#42"), use it directly
 - If $ARGUMENTS is empty, use `gh pr list -R vicentepinto98/projetoverde --state open` and ask which PR to fix
 
+## Step 0: Act as the GitHub App
+
+So that thread resolutions and any review activity are attributed to the bot rather than your account, acquire the App token first (falls back to your `gh` auth when the App is not configured):
+
+```bash
+APP_TOKEN=$(.claude/scripts/gh-app-token.sh)
+[[ -n "$APP_TOKEN" ]] && export GH_TOKEN="$APP_TOKEN"
+```
+
+Note: code commits pushed in Step 6 are authored by your local git config regardless — the App token only affects GitHub API actions (comments, thread resolution).
+
 ## Step 1: Guard — check round count
 
 Before doing anything, check how many **real** review rounds have happened. GitHub automatically creates empty-body reviews when new commits are pushed (to mark prior reviews as outdated) — exclude those from the count:

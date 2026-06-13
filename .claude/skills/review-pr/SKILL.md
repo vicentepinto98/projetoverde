@@ -11,6 +11,22 @@ Review pull request $ARGUMENTS against project standards, skill rules, and task 
 - If $ARGUMENTS is a URL, extract the PR number
 - If $ARGUMENTS is empty, use `gh pr list` to show open PRs and ask the user which one to review
 
+## Step 0: Reviewer identity (GitHub App)
+
+Post the review under the project's GitHub App so it is attributed to the bot, not your personal account. Run this first — it mints an installation token when the App is configured, and silently falls back to your `gh` auth when it is not:
+
+```bash
+APP_TOKEN=$(.claude/scripts/gh-app-token.sh)
+if [[ -n "$APP_TOKEN" ]]; then
+  export GH_TOKEN="$APP_TOKEN"   # every gh / gh api call below now acts as the App
+  REVIEW_AS_APP=1
+else
+  REVIEW_AS_APP=0                # App not set up yet — review as your own user
+fi
+```
+
+When `REVIEW_AS_APP=1`, the reviewer is the App and is therefore never the PR author, so real `APPROVE` / `REQUEST_CHANGES` events always work.
+
 ## Step 1: Gather Context
 
 1. Read the PR metadata: `gh pr view <number> --json title,body,headRefName,baseRefName,files`
@@ -56,15 +72,16 @@ All feedback goes directly onto the PR as a GitHub review — never just print i
 Every review body and every inline comment must start with the prefix `🤖 **Claude review:**` so it is clearly attributed as AI-generated, since the comment will appear under the repository owner's GitHub account.
 
 ### Determine review event
-GitHub does not allow `REQUEST_CHANGES` on a PR where the reviewer is also the PR author. Before posting, check:
+- If `REVIEW_AS_APP=1` (Step 0): the App is the reviewer and is never the PR author — always use `event="APPROVE"` or `event="REQUEST_CHANGES"` as appropriate.
+- Otherwise (reviewing as your own user): GitHub does not allow `REQUEST_CHANGES` on a PR where the reviewer is also the PR author. Check:
 
-```bash
-PR_AUTHOR=$(gh pr view <number> -R vicentepinto98/projetoverde --json author -q .author.login)
-REVIEWER=$(gh api user -q .login)
-```
+  ```bash
+  PR_AUTHOR=$(gh pr view <number> -R vicentepinto98/projetoverde --json author -q .author.login)
+  REVIEWER=$(gh api user -q .login)
+  ```
 
-- If `PR_AUTHOR == REVIEWER`: use `event="COMMENT"` for all reviews (approve and request-changes alike)
-- Otherwise: use `event="APPROVE"` or `event="REQUEST_CHANGES"` as appropriate
+  - If `PR_AUTHOR == REVIEWER`: use `event="COMMENT"` for all reviews (approve and request-changes alike)
+  - Otherwise: use `event="APPROVE"` or `event="REQUEST_CHANGES"` as appropriate
 
 ### File-level inline comments
 For each issue tied to a specific file and line, post an inline comment using the GitHub review API:
@@ -122,12 +139,29 @@ EOF
 Immediately invoke the `fix-pr-comments` skill on the same PR number — do not wait for a human. The fix-pr-comments skill will address the blocking issues, push, and then re-invoke `review-pr` automatically, continuing the cycle.
 
 ### If approved
-Auto-merge only when this review was triggered automatically by `implement-stories` (not a manual user request):
+Check whether all review threads are resolved before merging:
+
 ```bash
-gh pr merge <number> --rebase --delete-branch
+gh api graphql -f query='
+{
+  repository(owner: "vicentepinto98", name: "projetoverde") {
+    pullRequest(number: <number>) {
+      reviewThreads(first: 100) {
+        nodes { isResolved }
+      }
+    }
+  }
+}' --jq '[.data.repository.pullRequest.reviewThreads.nodes[] | select(.isResolved == false)] | length'
 ```
 
-Never auto-merge on a manual `/review-pr` invocation — leave the merge decision to the user.
+- **Result is 0** (all threads resolved) → merge immediately:
+  ```bash
+  gh pr merge <number> -R vicentepinto98/projetoverde --squash --delete-branch
+  ```
+  Squash is used because a repository ruleset blocks rebase merges; it also keeps one conventional commit per story on `main`. Then checkout main, pull, mark the story `[x]` in the STORIES file, and commit.
+
+- **Result > 0** (open threads remain) → do NOT merge. Report to the user:
+  > "PR #<number> is approved but has N unresolved conversation(s). Resolve them before merging."
 
 ## Step 6: Report to User
 

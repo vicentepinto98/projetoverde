@@ -92,3 +92,15 @@ Status options:
 |---|---|---|
 | `GH_TOKEN` | ~/.claude/settings.json | GitHub CLI auth for Claude |
 | `PORT` | backend/.env | HTTP server port (default 8080) |
+| `GH_APP_ID` | ~/.claude/settings.json | GitHub App ID (PR reviewer bot) |
+| `GH_APP_INSTALLATION_ID` | ~/.claude/settings.json | App installation ID for this repo |
+| `GH_APP_PRIVATE_KEY_PATH` | ~/.claude/settings.json | Path to the App's `.pem` key (outside the repo) |
+
+## GitHub App (PR reviewer identity)
+
+PR reviews are posted under a dedicated GitHub App (`projeto-verde-bot[bot]`) instead of the owner's personal account, so review feedback has a distinct, clearly-automated identity. Because the App is a separate identity from the PR author, real `APPROVE` / `REQUEST_CHANGES` events work (a user cannot request changes on their own PR).
+
+- The three `GH_APP_*` env vars above configure it. They live in the **private** `~/.claude/settings.json`, never in committed project settings.
+- The `.pem` private key is stored **outside the repo** (e.g. `~/.claude/projetoverde-app.pem`) and is gitignored as a safety net.
+- [.claude/scripts/gh-app-token.sh](.claude/scripts/gh-app-token.sh) mints a short-lived installation token on demand. If the App is not configured, it prints nothing and the review skills fall back to `GH_TOKEN` (your user account), so the workflow keeps working either way.
+- App repository permissions: **Pull requests** R/W, **Contents** R/W (merge + delete branch), **Checks** R, **Commit statuses** R, **Metadata** R.

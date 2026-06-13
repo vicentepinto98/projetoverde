@@ -11,5 +11,9 @@ backend/*.env
 *.test
 *.out
 
+# Secrets — never commit the GitHub App private key
+*.pem
+.claude/.secrets/
+
 # Misc
 .DS_Store
