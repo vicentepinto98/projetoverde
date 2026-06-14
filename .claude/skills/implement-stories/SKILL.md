@@ -116,6 +116,8 @@ gh pr create \
 Implements **E{n} S-{nn}: {story title}** (#{story-issue-number})
 Epic: #{epic-issue-number}
 
+Closes #{story-issue-number}
+
 ## What changed
 {1-3 bullet points}
 
@@ -128,6 +130,8 @@ Epic: #{epic-issue-number}
 EOF
 )"
 ```
+
+**The `Closes #{story-issue-number}` line in the PR body is mandatory and must be exact.** On a squash merge GitHub builds the merge commit from the **PR title and body**, not the branch commits — so a `Closes #` that lives only in a commit message is discarded and the issue never auto-closes. GitHub also only recognises the keyword when the issue reference immediately follows it: `Closes #6` works; `Implements ... (#6)` or `Closes the form story (#6)` do **not**. Put it on its own line as shown. After merging, still verify the issue actually closed (Step 6) — if it didn't, close it manually with `gh issue close`.
 
 After opening the PR, immediately invoke the `review-pr` skill on the new PR number — do not wait for a human to trigger it. The review posts comments directly on the GitHub PR.
 
