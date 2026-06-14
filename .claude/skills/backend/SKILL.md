@@ -6,8 +6,8 @@ description: Architecture and coding rules for the Projeto Verde Go backend — 
 ## Language & Version
 - Go 1.25, use modern idioms (range-over-func, any alias, etc.)
 - No frameworks beyond `github.com/go-chi/chi/v5` for routing
-- Prefer standard library (`net/http`, `encoding/json`, `os`, `log`) over third-party packages
-- Add dependencies only when the stdlib genuinely cannot do the job
+- **Stdlib first** — always reach for the standard library before adding a dependency. If stdlib can do the job (even with a few extra lines), use it. Only introduce a third-party package when the stdlib genuinely cannot do what is needed (e.g. a STARTTLS SMTP client is in stdlib; a JWT signer requires a crypto library).
+- Before adding any `go get` dependency, explicitly justify why stdlib falls short.
 
 ## Project Layout
 ```
@@ -46,6 +46,7 @@ backend/
 - All configuration via environment variables, loaded in `config.Load()`
 - Provide sensible defaults in `config.Load()` — never require env vars to be set for local dev
 - Never read env vars outside of `internal/config/`
+- Load `.env` for local development in `main.go` using a stdlib-only helper (`bufio.Scanner` + `strings.Cut` + `os.Setenv`). Silently skip if the file is absent so production is unaffected. Never use a third-party dotenv library.
 
 ## Code Style
 - No comments that restate what the code does — only explain non-obvious WHY
