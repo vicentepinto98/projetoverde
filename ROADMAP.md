@@ -9,7 +9,7 @@ Stack: Go + Chi (backend) · React + Vite + Tailwind (frontend) · GitHub Action
 
 | Epic | Title | Status |
 |---|---|---|
-| E1 | Contact Form Backend | Backlog |
+| E1 | Contact Form Backend | Done |
 | E2 | Deploy Pipeline | Backlog |
 | E3 | Real Media & Gallery | Backlog |
 | E4 | SEO & Performance | Backlog |
@@ -44,17 +44,17 @@ Non-functional:
 **Architecture Decisions:**
 - ADR-01: Use SMTP via Go's `net/smtp` + app password (Gmail) over a third-party email API — avoids new external dependencies and free tier limits
 
-**Scope:**
+**Delivered:**
 
 Backend:
-- `POST /api/contact` handler — validate input, send email via SMTP, return JSON response
-- Config: `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `CONTACT_TO` env vars
-- Unit tests for validation logic; integration test for handler
+- `POST /api/contact` handler validates input, sends email via SMTP, and returns JSON (#5)
+- Config reads `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `CONTACT_TO` from the environment; `.env` is auto-loaded for local dev via a stdlib-only loader (#13)
+- `Reply-To` is set to the submitter's address and the name/email are included in the body so the school can reply; header values are sanitized against CRLF injection (#16)
+- Unit tests for validation and message building plus `httptest` handler tests (#5, #16)
 
 Frontend:
-- Wire `Contact.tsx` form to `POST /api/contact`
-- Show field-level validation errors from API response
-- Retain success state on 200; show error banner with retry on failure
+- `Contact.tsx` wired to `POST /api/contact` with field-level validation errors, an in-flight disabled state, and a retry banner on server error (#6)
+- "Enviar nova mensagem" button resets the form after a successful send (#15)
 
 ---
 
