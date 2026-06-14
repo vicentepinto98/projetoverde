@@ -123,6 +123,7 @@ git push
 ## Rules
 - Every story must be implementable in a single PR
 - A story without an epic is not allowed — always include `**Epic:** E{n}`
+- The `**Effort:**` line is **mandatory** in both the STORIES file entry and the GitHub issue body — never omit it
 - Every MUST story must map to at least one TC-XX from the epic
 - Ask when multiple valid approaches exist — do not decide silently
 - If `gh` commands fail, log and continue — STORIES file is source of truth
