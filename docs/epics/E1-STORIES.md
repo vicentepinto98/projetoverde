@@ -129,3 +129,29 @@ No new files needed.
 
 ### Test Cases Covered
 TC-01 (happy path), TC-02 (validation errors shown in UI), TC-03 (retry banner on server error)
+
+---
+
+## S-03: Reset contact form after successful send [~] (#15)
+
+**Epic:** E1 (#1)
+**Priority:** SHOULD
+**Effort:** 1h
+**Depends on:** S-02 (#6)
+
+### Details
+After a successful submission the form shows the success state ("Mensagem enviada!") with no way back to the form except a page reload. Add an "Enviar nova mensagem" button to the success state that resets the form to its empty, editable state.
+
+### Implementation Details
+Modify **`frontend/src/components/Contact.tsx`**:
+- Add a reset handler that sets `sent` to `false` and clears `form`, `errors`, and `submitError`.
+- Render an "Enviar nova mensagem" button below the confirmation text in the success state, styled consistently with the existing buttons (Tailwind only).
+
+### Acceptance Criteria
+- [ ] The success state shows an "Enviar nova mensagem" button below the confirmation text.
+- [ ] Clicking it returns to the empty form (`sent === false`) with all fields cleared.
+- [ ] Any previous field errors and the submit-error banner are cleared on reset.
+- [ ] No inline styles; all styling via Tailwind utility classes.
+
+### Test Cases Covered
+TC-04 (send another message without reload)

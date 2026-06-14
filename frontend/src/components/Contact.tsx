@@ -41,6 +41,13 @@ export default function Contact() {
     }
   }
 
+  function resetForm() {
+    setForm({ name: '', email: '', message: '' })
+    setErrors({})
+    setSubmitError(false)
+    setSent(false)
+  }
+
   const inputClass =
     'w-full bg-white/10 border border-cream/30 text-cream placeholder-cream/40 rounded-xl px-4 py-3 text-sm font-sans focus:outline-none focus:border-sage-green transition-colors'
 
@@ -124,7 +131,14 @@ export default function Contact() {
               <div className="bg-white/10 rounded-3xl p-10 text-center">
                 <div className="text-5xl mb-4">🌿</div>
                 <h3 className="font-serif text-2xl font-bold text-cream mb-2">Mensagem enviada!</h3>
-                <p className="text-cream/70">Obrigado pelo contacto. Respondemos em breve.</p>
+                <p className="text-cream/70 mb-8">Obrigado pelo contacto. Respondemos em breve.</p>
+                <button
+                  type="button"
+                  onClick={resetForm}
+                  className="bg-sage-green text-forest-green font-bold text-sm tracking-wide px-8 py-3 rounded-full hover:bg-cream transition-colors"
+                >
+                  Enviar nova mensagem
+                </button>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="flex flex-col gap-4">
