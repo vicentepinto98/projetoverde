@@ -155,3 +155,31 @@ Modify **`frontend/src/components/Contact.tsx`**:
 
 ### Test Cases Covered
 TC-04 (send another message without reload)
+
+---
+
+## S-04: Include sender email in contact notification (Reply-To) [~] (#16)
+
+**Epic:** E1 (#1)
+**Priority:** MUST
+**Effort:** 2h
+**Depends on:** S-01 (#5)
+
+### Details
+The email delivered to the school includes the sender's name and message but not their email address, so the school cannot reply to the person who submitted the form. Add the submitter's email as a `Reply-To` header and include name + email in the body. Sanitize header-bound values to prevent CRLF/header injection.
+
+### Implementation Details
+Modify **`backend/internal/handlers/contact.go`**:
+- Extract message construction into a `buildMessage(cfg, req)` helper for testability.
+- Add a `Reply-To: <email>` header so the school can reply directly to the submitter.
+- Include `Nome:` and `Email:` lines in the body alongside the message.
+- Add a `sanitizeHeader` helper (strip CR/LF) and apply it to the name and email before placing them in headers.
+
+### Acceptance Criteria
+- [ ] The delivered email has a `Reply-To` header set to the submitter's email.
+- [ ] The body shows the sender's name and email alongside the message.
+- [ ] Header-bound values are sanitized to prevent CRLF/header injection.
+- [ ] `go test ./...` passes, with a unit test asserting the `Reply-To` header, body content, and injection sanitization.
+
+### Test Cases Covered
+TC-05 (reply-to + sender info in email), TC-06 (header injection sanitized)
