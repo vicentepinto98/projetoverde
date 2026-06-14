@@ -5,9 +5,11 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/vicentepinto98/projetoverde/internal/config"
+	"github.com/vicentepinto98/projetoverde/internal/models"
 )
 
 func TestContact_Validation(t *testing.T) {
@@ -61,6 +63,48 @@ func TestContact_Validation(t *testing.T) {
 				t.Errorf("expected errors[%q] in response: %v", tt.wantErrKey, resp)
 			}
 		})
+	}
+}
+
+func TestBuildMessage(t *testing.T) {
+	cfg := config.Config{SMTPUser: "site@example.com", ContactTo: "school@example.com"}
+	req := models.ContactRequest{Name: "Ana Silva", Email: "ana@parent.com", Message: "Olá,\nquero inscrever a minha filha."}
+
+	msg := string(buildMessage(cfg, req))
+
+	if !strings.Contains(msg, "Reply-To: ana@parent.com\r\n") {
+		t.Errorf("missing Reply-To header for submitter:\n%s", msg)
+	}
+	if !strings.Contains(msg, "Nome: Ana Silva") {
+		t.Errorf("body should contain sender name:\n%s", msg)
+	}
+	if !strings.Contains(msg, "Email: ana@parent.com") {
+		t.Errorf("body should contain sender email:\n%s", msg)
+	}
+	if !strings.Contains(msg, "quero inscrever a minha filha.") {
+		t.Errorf("body should contain the message:\n%s", msg)
+	}
+}
+
+func TestBuildMessage_HeaderInjection(t *testing.T) {
+	cfg := config.Config{SMTPUser: "site@example.com", ContactTo: "school@example.com"}
+	// Attacker tries to smuggle a Bcc header through the name field.
+	req := models.ContactRequest{
+		Name:    "Eve\r\nBcc: victim@example.com",
+		Email:   "eve@evil.com",
+		Message: "hi",
+	}
+
+	msg := string(buildMessage(cfg, req))
+
+	// The injected text may survive as harmless inline content, but it must
+	// never appear as its own header line (i.e. preceded by a CRLF).
+	if strings.Contains(msg, "\r\nBcc:") {
+		t.Errorf("CRLF injection not sanitized — Bcc leaked as a header line:\n%s", msg)
+	}
+	// The Subject must remain a single header line.
+	if strings.Count(msg, "Subject:") != 1 {
+		t.Errorf("expected exactly one Subject header:\n%s", msg)
 	}
 }
 
