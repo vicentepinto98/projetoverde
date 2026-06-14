@@ -23,6 +23,13 @@ The project-root `STORIES.md` is an index only — do not read stories from it.
 - If $ARGUMENTS specifies a story ID (e.g. "S-03"), focus on that story only
 - If a story is `[!]` blocked, skip it and note the blocker
 
+### Adding a new story to an existing epic
+When asked to create one or more *new* stories in an already-planned epic (rather than implementing existing `[ ]` stories), do not improvise the issue — reuse `plan-epic`'s **Step 6 issue template** so every story is consistent:
+- The issue body **must** include the `**Effort:**` line — it is mandatory, never omit it (it was missed when issues were created ad hoc).
+- Write the full story (including `**Effort:**`) into `docs/epics/E{n}-STORIES.md` as well.
+- Create the issue with `story` + area + `priority:*` labels, then add it to the project board (`addProjectV2ItemById`) so `set-board-status.sh` can move it.
+Then implement it through the normal Per-Story Workflow below.
+
 ## Step 1: Preparation
 Before writing any code:
 - Read the STORIES file fully — understand priorities, dependencies, effort, and acceptance criteria
@@ -68,10 +75,12 @@ Each story gets its own feature branch and PR. A PR may implement a full story o
 
 #### Per-Story Workflow
 1. Create branch: `git checkout -b feat/E{n}-S{nn}-{slug}`
-2. Mark story as `[~]` in the STORIES file on the feature branch and commit immediately, then move the board status to **In Progress**:
+2. Mark story as `[~]` in the STORIES file on the feature branch and commit immediately, then move **both the story and its epic** to **In Progress** on the board:
    ```bash
    .claude/scripts/set-board-status.sh {story-issue-number} in-progress
+   .claude/scripts/set-board-status.sh {epic-issue-number} in-progress
    ```
+   As soon as any story is in progress, its epic is in progress too. The epic issue number is the `#N` in the STORIES file's `**Epic:** E{n} (#N)` line. The call is idempotent — safe to run even if the epic is already In Progress.
 3. Implement the story (TDD where specified: failing test → implementation → pass)
 4. Commit with conventional format (see Commit Rules below)
 5. Push: `git push -u origin feat/E{n}-S{nn}-{slug}`
@@ -81,7 +90,7 @@ Each story gets its own feature branch and PR. A PR may implement a full story o
 - `[ ]` → `[~]` when implementation starts. This is committed **on the feature branch**, so the `[~]` reaches `main` inside the story's own PR.
 - `[~]` stays through PR creation, review, and any fix rounds.
 - **Completion is not marked by flipping `[x]` on `main`.** The ruleset makes `main` PR-only and the feature branch is deleted at merge, so there is nothing left to push to. Two things at merge record "done", and together they are the source of truth:
-  1. The PR body's `Closes #{story-issue-number}` auto-closes the story issue when the squash-merge lands.
+  1. The PR body's `Closes #{story-issue-number}` auto-closes the story issue when the squash-merge lands. **Auto-close is asynchronous** — it can lag the merge by a few minutes, so do not race it with an immediate `gh issue close`. Confirm the state, and only close manually if the issue is still open after a short wait.
   2. After confirming the merge, set the board to **Done**:
      ```bash
      gh pr view {number} -R vicentepinto98/projetoverde --json state,mergedAt -q '{state,mergedAt}'
@@ -142,9 +151,14 @@ After opening the PR, immediately invoke the `review-pr` skill on the new PR num
 
 ## Step 7: Roadmap & GitHub Sync
 If all stories in an epic are complete:
-1. Close the GitHub Milestone if one exists
-2. Update ROADMAP.md: replace "Scope" subsections with "Delivered" (past tense, factual)
-3. Commit: `chore(docs): close E{n} epic in ROADMAP — convert Scope to Delivered`
+1. Move the epic to **Done** on the board and close its issue (the counterpart to moving it In Progress when the first story started):
+   ```bash
+   .claude/scripts/set-board-status.sh {epic-issue-number} done
+   gh issue close {epic-issue-number} -R vicentepinto98/projetoverde
+   ```
+2. Close the GitHub Milestone if one exists
+3. Update ROADMAP.md: replace "Scope" subsections with "Delivered" (past tense, factual)
+4. Commit: `chore(docs): close E{n} epic in ROADMAP — convert Scope to Delivered`
 
 ## Commit Rules
 ```

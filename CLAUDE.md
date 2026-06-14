@@ -103,4 +103,4 @@ PR reviews are posted under a dedicated GitHub App (`projeto-verde-bot[bot]`) in
 - The three `GH_APP_*` env vars above configure it. They live in the **private** `~/.claude/settings.json`, never in committed project settings.
 - The `.pem` private key is stored **outside the repo** (e.g. `~/.claude/projetoverde-app.pem`) and is gitignored as a safety net.
 - [.claude/scripts/gh-app-token.sh](.claude/scripts/gh-app-token.sh) mints a short-lived installation token on demand. If the App is not configured, it prints nothing and the review skills fall back to `GH_TOKEN` (your user account), so the workflow keeps working either way.
-- App repository permissions: **Pull requests** R/W, **Contents** R/W (merge + delete branch), **Checks** R, **Commit statuses** R, **Metadata** R.
+- App repository permissions: **Pull requests** R/W, **Contents** R/W (merge + delete branch), **Issues** R/W (close linked issues on merge), **Checks** R, **Commit statuses** R, **Metadata** R.
